@@ -1,0 +1,39 @@
+name: 알뜰폰 요금제 감시
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # 10분마다 실행 (GitHub 사정에 따라 조금 늦어질 수 있음)
+  workflow_dispatch:          # 'Run workflow' 버튼으로 직접 실행
+    inputs:
+      test:
+        description: "디스코드 테스트 메시지만 보내기"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: checker
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: 갤러리 확인
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python checker.py ${{ inputs.test && '--test' || '' }}
+      - name: 마지막으로 본 글 번호 저장
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          [ -f state.json ] || exit 0
+          git add state.json
+          git diff --cached --quiet || (git commit -m "기록 갱신" && git push)
