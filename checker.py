@@ -9,6 +9,7 @@
   2) 제목만 봐도 아래 조건에 맞아 보이는 글
      A. 통화·문자 무제한 + 평생 요금제 + 월 770원 이하
      B. eSIM(이심) 데이터용 + 5G + 30GB 이상 + 월 100원 이하
+     C. 평생 요금제 + 월 110원 이하, 또는 '실 청구 0원'
 """
 import json
 import os
@@ -106,6 +107,12 @@ def judge(post):
     lifetime = "평생" in low
     if unlimited and lifetime and cheapest is not None and cheapest <= 770:
         reasons.append(f"조건 A: 평생·무제한·{cheapest}원 (770원 이하)")
+
+    # 전설급처럼 아주 싼 평생 요금제 (통화 분량은 상관없음)
+    if lifetime and cheapest is not None and cheapest <= 110:
+        reasons.append(f"조건 C: 평생·{cheapest}원 (110원 이하)")
+    elif re.search(r"실(?:청구|납부|부담)(?:금액|액)?0원", low):
+        reasons.append("조건 C: 실 청구 0원")
 
     esim = "esim" in low or "이심" in low
     is_5g = "5g" in low
