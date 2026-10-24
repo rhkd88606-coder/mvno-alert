@@ -4,6 +4,7 @@
 좋은 요금제로 보이는 글이면 디스코드로 알림을 보내는 프로그램.
 
 어떤 글을 알려주나?
+  0) 말머리가 '행사'인 글은 무조건
   1) 말머리나 제목에 '굴비', '전설', '대란' 이 들어간 글
   2) 제목만 봐도 아래 조건에 맞아 보이는 글
      A. 통화·문자 무제한 + 평생 요금제 + 월 770원 이하
@@ -34,6 +35,7 @@ HEADERS = {
 }
 
 GRADE_WORDS = ["굴비", "전설", "대란"]
+ALWAYS_HEADS = ["행사"]  # 이 말머리 글은 무조건 알림
 
 
 # ---------------------------------------------------------------- 글 목록 읽기
@@ -88,6 +90,9 @@ def judge(post):
     text = f"{post['head']} {post['title']}"
     low = text.lower().replace(" ", "")
     reasons = []
+
+    if post["head"] in ALWAYS_HEADS:
+        reasons.append(f"말머리 '{post['head']}' 글")
 
     for word in GRADE_WORDS:
         if word in text:
