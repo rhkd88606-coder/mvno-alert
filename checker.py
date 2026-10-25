@@ -23,6 +23,7 @@ from bs4 import BeautifulSoup
 GALLERY_ID = "mvnogallery"
 LIST_URL = "https://gall.dcinside.com/mgallery/board/lists/"
 VIEW_URL = "https://gall.dcinside.com/mgallery/board/view/?id={gid}&no={no}"
+MOBILE_URL = "https://m.dcinside.com/board/{gid}/{no}"
 PAGES_TO_CHECK = 3  # 한 페이지에 글 50개, 최신 3페이지(150개)를 확인
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
@@ -126,14 +127,18 @@ def judge(post):
 # ---------------------------------------------------------------- 디스코드 알림
 def send_discord(post, reasons):
     url = VIEW_URL.format(gid=GALLERY_ID, no=post["no"])
+    mobile_url = MOBILE_URL.format(gid=GALLERY_ID, no=post["no"])
     head = f"[{post['head']}] " if post["head"] else ""
     message = {
         "content": (
             f"📢 **좋은 요금제 글 발견!**\n"
             f"**{head}{post['title']}**\n"
             f"이유: {', '.join(reasons)}\n"
-            f"{url}"
-        )
+            f"\n"
+            f"📱 휴대폰으로 보기: {mobile_url}\n"
+            f"💻 컴퓨터로 보기: {url}"
+        ),
+        "allowed_mentions": {"parse": []},
     }
     if not WEBHOOK_URL:
         print("[웹훅 없음, 화면에만 출력]", message["content"])
