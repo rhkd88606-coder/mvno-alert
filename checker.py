@@ -37,7 +37,7 @@ HEADERS = {
 }
 
 GRADE_WORDS = ["굴비", "전설", "대란"]
-ALWAYS_HEADS = ["행사"]  # 이 말머리 글은 무조건 알림
+ALWAYS_HEADS = ["행사"]  # 말머리에 이 글자가 들어 있으면 무조건 알림 (예: "행사🆕")
 
 
 # ---------------------------------------------------------------- 글 목록 읽기
@@ -93,7 +93,7 @@ def judge(post):
     low = text.lower().replace(" ", "")
     reasons = []
 
-    if post["head"] in ALWAYS_HEADS:
+    if any(word in post["head"] for word in ALWAYS_HEADS):
         reasons.append(f"말머리 '{post['head']}' 글")
 
     for word in GRADE_WORDS:
@@ -192,6 +192,8 @@ def main():
                 send_discord(post, reasons)
 
     state["last_no"] = max(posts[-1]["no"], last_no or 0)
+    # 갤러리에 어떤 말머리들이 있는지 기록 (문제 생겼을 때 확인용)
+    state["heads_seen"] = sorted({p["head"] for p in posts})
     save_state(state)
 
 
