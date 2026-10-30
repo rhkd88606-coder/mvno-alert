@@ -70,7 +70,8 @@ def parse_list(html):
         head = tr.select_one("td.gall_subject")
         result.append({
             "no": int(num.get_text(strip=True)),
-            "head": head.get_text(strip=True) if head else "",
+            # 말머리 칸에 같은 글자가 두 번 들어 있어서 첫 번째만 씀 (예: "행사🆕행사🆕")
+            "head": next(head.stripped_strings, "") if head else "",
             "title": title_a.get_text(" ", strip=True),
         })
     return result
@@ -93,7 +94,7 @@ def judge(post):
     low = text.lower().replace(" ", "")
     reasons = []
 
-    if any(word in post["head"] for word in ALWAYS_HEADS):
+    if any(word in post["head"] for word in ALWAYS_HEADS) and "지난" not in post["head"]:
         reasons.append(f"말머리 '{post['head']}' 글")
 
     for word in GRADE_WORDS:

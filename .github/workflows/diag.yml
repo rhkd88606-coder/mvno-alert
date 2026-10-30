@@ -1,9 +1,7 @@
 name: diag
 on: workflow_dispatch
-permissions:
-  contents: write
 jobs:
-  diag:
+  catchup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,21 +9,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: |
+      - env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
           python - <<'PY'
-          import json, re, requests, checker
-          out = {"heads": {}, "haengsa": []}
-          for page in range(1, 31):
-              r = requests.get(checker.LIST_URL, params={"id": checker.GALLERY_ID, "page": page}, headers=checker.HEADERS, timeout=20)
-              for p in checker.parse_list(r.text):
-                  out["heads"][p["head"]] = out["heads"].get(p["head"], 0) + 1
-                  if "행사" in p["head"] or "행사" in p["title"]:
-                      out["haengsa"].append([p["no"], p["head"], p["title"], checker.judge(p)])
-          r = requests.get(checker.LIST_URL, params={"id": checker.GALLERY_ID}, headers=checker.HEADERS, timeout=20)
-          out["head_tabs"] = re.findall(r'listSearchHead\((\d+)\)[^>]*>([^<]*)<', r.text)[:30]
-          json.dump(out, open("diag.json", "w"), ensure_ascii=False, indent=1)
+          import checker
+          for no, title in [(519180, "알뜰폰 모음 사이트 완성했다 (+여행용 이심 비교)"), (519436, "어그래 헬모형 다시왔어~"), (519841, "쉐이크 122 셀프통수 완료 ㅋㅋㅋㅋ")]:
+              checker.send_discord({"no": no, "head": "행사🆕", "title": title}, ["놓쳤던 '행사' 글 다시 알림"])
           PY
-      - run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add diag.json && git commit -m diag && git pull --rebase && git push
